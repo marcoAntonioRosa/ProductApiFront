@@ -2,29 +2,33 @@
   <div class="container d-grid gap-4">
     <div class="card mt-4">
       <div class="card-body">
-        <form class="row g-3">
+        <form class="row g-3" @submit.prevent="saveOrUpdate">
           <div class="col-12">
             <label for="inputName" class="form-label">Name</label>
-            <input type="text" class="form-control" id="inputName">
+            <input type="text" class="form-control" id="inputName" v-model="productForm.name">
+          </div>
+          <div class="col-12">
+            <label for="inputDescription" class="form-label">Description</label>
+            <input type="text" class="form-control" id="inputDescription" v-model="productForm.description">
           </div>
           <div class="col-md-6">
             <label for="inputSourceSku" class="form-label">Source Sku</label>
-            <input type="text" class="form-control" id="inputSourceSku">
+            <input type="text" class="form-control" id="inputSourceSku" v-model="productForm.sourceSku">
           </div>
           <div class="col-md-6">
             <label for="inputDestionationSku" class="form-label">Destination Sku</label>
-            <input type="text" class="form-control" id="inputDestionationSku">
+            <input type="text" class="form-control" id="inputDestionationSku" v-model="productForm.destinationSku">
           </div>
           <div class="col-md-6">
             <label for="inputStock" class="form-label">Stock</label>
-            <input type="text" class="form-control" id="inputStock">
+            <input type="text" class="form-control" id="inputStock" v-model="productForm.stock">
           </div>
           <div class="col-md-6">
             <label for="inputPrice" class="form-label">Price</label>
-            <input type="text" class="form-control" id="inputPrice">
+            <input type="text" class="form-control" id="inputPrice" v-model="productForm.price">
           </div>
           <div class="col-12">
-            <button type="submit" class="btn btn-primary">Send</button>
+            <button type="submit" class="btn btn-primary">Save</button>
           </div>
         </form>
       </div>
@@ -54,8 +58,8 @@
               <td>{{ product.stock }}</td>
               <td>{{ product.price }}</td>
               <td class="d-grid gap-2 d-md-flex justify-content-md-center">
-                <button class="btn btn-primary btn-sm" type="button"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-danger btn-sm me-md-2" type="button"><i class="bi bi-trash"></i></button>
+                <button @click="editItem(product)" class="btn btn-primary btn-sm" type="button"><i class="bi bi-pencil"></i></button>
+                <button @click="deleteItem(product.id)" class="btn btn-danger btn-sm me-md-2" type="button"><i class="bi bi-trash"></i></button>
               </td>
             </tr>
           </tbody>
@@ -74,14 +78,64 @@
 
     data() {
       return {
+        productForm: {
+          id: '',
+          name: '',
+          description: '',
+          sourceSku: '',
+          destinationSku: '',
+          stock: '',
+          price: '',
+        },
+
         productsArray: []
       }
     },
 
     mounted() {
-      Product.list().then(res => {
-        this.productsArray = res.data;
-      })
+      this.productForm = {}
+      this.list()
+    },
+
+    methods: {
+
+      list() {
+          Product.list().then(res => {
+          this.productsArray = res.data;
+        })
+      },
+
+      saveOrUpdate() {
+        console.log('id', this.productForm.id)
+        if (!this.productForm.id)
+          this.save()
+        else
+          this.update()
+      },
+
+      save() {
+        Product.save(this.productForm).then(res => {
+          this.productForm = {}
+          this.productsArray.push(res.data);
+        })
+      },
+
+      update() {
+        Product.update(this.productForm).then(
+          this.productForm = {}
+        )
+      },
+
+      editItem(product) {
+        this.productForm = product
+      },
+
+      deleteItem(productId) {
+        Product.delete(productId).then(
+          this.productsArray.splice(this.productsArray.indexOf(productId), 1)
+        )
+      }
+      
     }
 
   }
